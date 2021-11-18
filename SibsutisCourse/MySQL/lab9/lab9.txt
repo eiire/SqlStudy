@@ -1,0 +1,74 @@
+-- 33. Путем соединения таблиц HR.EMPLOYEES и HR.DEPARTMENTS получить список 
+-- сотрудников, которые относятся к службам Marketing, Sales и IT.
+
+select * from HR.EMPLOYEES t1 join HR.DEPARTMENTS t2 
+    on t1.DEPARTMENT_ID = t2.DEPARTMENT_ID and t2.DEPARTMENT_NAME in ('Marketing', 'Sales', 'IT');
+    
+-- 9. Путем соединения таблиц HR.DEPARTMENTS и HR.EMPLOYEES получить список 
+-- департаментов, указав по каждому департаменту число работающих сотрудников 
+-- и общий фонд зарплаты. Список должен включать даже те департаменты, для 
+-- которых данные о сотрудниках отсутствуют.
+-- которых данные о сотрудниках отсутствуют -- таких нет, везде есть работники
+
+select t1.DEPARTMENT_NAME, count(t2.EMPLOYEE_ID) as numb_empls, sum(t2.salary) as fond_salary
+    from HR.DEPARTMENTS t1 
+        left join HR.EMPLOYEES t2 on t1.DEPARTMENT_ID = t2.DEPARTMENT_ID 
+        group by t1.DEPARTMENT_NAME;
+
+-- 28. Путем соединения таблиц HR.DEPARTMENTS, HR.LOCATIONS, HR.COUNTRIES и 
+-- HR.REGIONS получить список департаментов (с указанием department_id и 
+-- department_name), которые размещаются на территории Европы (region_name =
+-- 'Europe'). 
+
+-- select * from HR.DEPARTMENTS;
+-- select * from HR.LOCATIONS;
+-- select * from HR.COUNTRIES;
+-- select * from HR.REGIONS;
+
+select t4.REGION_NAME, t1.* 
+    from HR.DEPARTMENTS t1 
+        join HR.LOCATIONS t2 on t1.LOCATION_ID = t2.LOCATION_ID 
+        join HR.COUNTRIES t3 on t2.COUNTRY_ID = t3.COUNTRY_ID 
+        join HR.REGIONS t4 on t3.REGION_ID = t4.REGION_ID and t4.REGION_ID = 1;
+
+-- 18. Путем соединения таблиц HR.EMPLOYEES, HR.DEPARTMENTS и HR.LOCATIONS получить
+-- список сотрудников, у которых рабочие места располагаются в Торонто (CITY=’Toronto’).
+
+-- select * from HR.EMPLOYEES;
+-- select * from HR.DEPARTMENTS;
+-- select * from HR.LOCATIONS;
+
+select t3.city, t1.* 
+    from hr.employees t1 
+    join hr.departments t2 on t1.department_id = t2.department_id 
+    join hr.locations t3 on t2.LOCATION_ID = t3.LOCATION_ID and city='Toronto';
+    
+-- 26. Путем соединения таблиц HR.DEPARTMENTS, HR.LOCATIONS и HR.COUNTRIES 
+-- построить список, в котором по каждому департаменту отобразить название 
+-- департамента (DEPARTMENT_NAME) и данные о его размещении – страна и город. 
+-- Исключить из списка департаменты, в которых отсутствуют руководители.
+
+select t1.DEPARTMENT_NAME, t2.CITY, t3.COUNTRY_NAME
+    from HR.DEPARTMENTS t1 
+    join HR.LOCATIONS t2 on t1.LOCATION_ID = t2.LOCATION_ID 
+    join HR.COUNTRIES t3 on t2.COUNTRY_ID = t3.COUNTRY_ID where t1.MANAGER_ID is not null;
+    
+-- 15. Путем соединения таблиц HR.EMPLOYEES и HR.DEPARTMENTS сформировать список
+-- сотрудников, которые являются руководителями департаментов. Список должен 
+-- содержать имя и фамилию, оклад, идентификатор департамента, номер телефона и e-mail.
+
+-- select * from HR.EMPLOYEES;
+-- select * from HR.DEPARTMENTS;
+
+ select t1.FIRST_NAME, t1.LAST_NAME, t1.SALARY, t1.phone_number, t1.DEPARTMENT_ID, t1.EMAIL 
+    from HR.EMPLOYEES t1 
+        join HR.DEPARTMENTS t2 on t1.department_id = t2.department_id and t1.employee_id = t2.manager_id;
+
+-- 6. Путем соединения таблиц HR.DEPARTMENTS и HR.EMPLOYEES отобразить полные 
+-- данные о департаментах, в которых максимальная зарплата выше 10000.
+
+-- select * from HR.EMPLOYEES;
+-- select * from HR.DEPARTMENTS;
+
+select t2.* from (select max(salary) as max_salary, department_id from hr.EMPLOYEES group by department_id) t1
+    join HR.DEPARTMENTS t2 on t2.DEPARTMENT_ID = t1.DEPARTMENT_ID and t1.max_salary > 10000;

@@ -1,0 +1,71 @@
+-- 2. Используя таблицу HR.EMPLOYEES, отобразить данные о сотрудниках (EMPLOYEE_ID, 
+-- FIRST_NAME, LAST_NAME, DEPARTMENT_ID и PHONE_NUMBER), которые приняты на работу 
+-- после сотрудника с номером 101. Список сотрудников ограничить департаментами с 
+-- номерами 30, 60 и 100.
+select EMPLOYEE_ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID, PHONE_NUMBER 
+    from HR.EMPLOYEES 
+    where HIRE_DATE > (select HIRE_DATE from HR.EMPLOYEES where EMPLOYEE_ID = 101)
+    and DEPARTMENT_ID in (30, 60, 100); 
+
+-- 14. С помощью таблицы HR.EMPLOYEES построить список сотрудников, у которых стаж 
+-- работы в компании ниже среднего стажа.
+
+-- EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE, JOB_ID, SALARY, COMMISSION_PCT, MANAGER_ID, DEPARTMENT_ID
+-- Нашел мин. стаж работы [select min(hire_date) from hr.employees] и отнял ее от даты, когда наняли сотрудника и так с каждым,
+-- то есть нашел продолжительность работы каждого сотр. Нашел потом среднее от всех строк.
+-- (select min(hire_date) from hr.employees) -- start work
+select * from hr.employees 
+    where (HIRE_DATE - (select min(hire_date) from hr.employees)) 
+        < (select avg(HIRE_DATE - (select min(hire_date) from hr.employees)) as avg_work_experience from HR.EMPLOYEES);
+
+-- 23. Используя таблицу HR.DEPARTMENTS, отобразить полные данные о департаментах, которые размещаются -- там же, где департамент с номером 90. Исключить из рассмотрения департаменты, для которых не указан -- код руководителя
+
+select * 
+    from hr.DEPARTMENTS 
+    where location_id = (select location_id from hr.DEPARTMENTS where DEPARTMENT_ID = 90) and MANAGER_ID is not null;
+    
+-- 33. Используя таблицы HR.EMPLOYEES и HR.JOB_HISTORY, сформировать список сотрудников, у которых 
+-- отсутствуют данные о карьерном росте. При построении списка ограничиться департаментами 20, 40, 70 и 110
+
+select * from hr.employees 
+    where not exists (select * from hr.JOB_HISTORY where employee_id = employees.employee_id) and DEPARTMENT_ID in (20, 40, 70, 110);
+    
+-- 24. Используя таблицы HR.DEPARTMENTS и HR.EMPLOYEES, отобразить полные данные 
+-- о департаментах, в каждом из которых работает более 5 сотрудников.
+
+-- *DEPARTMENT_ID* DEPARTMENT_NAME MANAGER_ID LOCATION_ID
+-- EMPLOYEE_ID	FIRST_NAME	LAST_NAME	EMAIL	PHONE_NUMBER	HIRE_DATE	
+--      JOB_ID	SALARY	COMMISSION_PCT	MANAGER_ID	*DEPARTMENT_ID*
+-- select DEPARTMENT_ID, count(EMPLOYEE_ID) as cnt from HR.EMPLOYEES group by DEPARTMENT_ID;
+-- select * from HR.EMPLOYEES;
+
+--var with join
+select t1.DEPARTMENT_ID, t1.DEPARTMENT_NAME, t1.MANAGER_ID, t1.LOCATION_ID, t2.cnt_empls from HR.DEPARTMENTS t1 
+        join (select DEPARTMENT_ID, count(EMPLOYEE_ID) as cnt_empls from HR.EMPLOYEES group by DEPARTMENT_ID) t2 
+        on t1.DEPARTMENT_ID = t2.DEPARTMENT_ID and cnt_empls > 5;
+        
+--var without join
+select * from HR.DEPARTMENTS 
+    where DEPARTMENT_ID in (
+        select DEPARTMENT_ID 
+            from (select DEPARTMENT_ID, count(EMPLOYEE_ID) as cnt_empls from HR.EMPLOYEES group by DEPARTMENT_ID)
+            where cnt_empls > 5
+    );
+    
+-- 4. С помощью таблицы HR.EMPLOYEES построить список сотрудников, у которых 
+-- отклонение от среднего оклада не превышает 2000.
+
+SELECT  FIRST_NAME, LAST_NAME, SALARY - (SELECT AVG(SALARY) FROM  HR.EMPLOYEES) AS Diff
+    FROM HR.EMPLOYEES
+    WHERE SALARY - (SELECT  AVG (SALARY)  FROM   HR.EMPLOYEES) <= 2000 and
+    SALARY - (SELECT  AVG (SALARY)  FROM   HR.EMPLOYEES) >= -2000;
+
+-- 41. С помощью таблиц HR.EMPLOYEES и HR.DEPARTMENTS получить список сотрудников 
+-- для департаментов, у которых код местоположения (LOCATION_ID) отличается от 
+-- 1500, 1700 и 2500.
+
+select * from HR.EMPLOYEES
+    where DEPARTMENT_ID in (
+        select DEPARTMENT_ID from hr.departments where LOCATION_ID not in (1500, 1700, 2500)
+    );
+
